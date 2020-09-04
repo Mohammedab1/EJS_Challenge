@@ -19,13 +19,17 @@
 	padding-bottom: 60px;
 }
 
+#footerH{
+  position:  relative;
+}
 .footer {
-	position: absolute;
+	position:  absolute;
 	text-align: center;
 	bottom: 0;
 	width: 100%;
 	height: 60px;
 	background-color: #1abc9c;
+  padding-top: 0.01rem;
 }
 
 .footer p {

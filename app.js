@@ -4,9 +4,26 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const ejs = require("ejs");
 const _ = require("lodash");
+const mongoose = require("mongoose");
 
-const homeStartingContent = "Lacus vel facilisis volutpat est velit egestas dui id ornare. Semper auctor neque vitae tempus quam. Sit amet cursus sit amet dictum sit amet justo. Viverra tellus in hac habitasse. Imperdiet proin fermentum leo vel orci porta. Donec ultrices tincidunt arcu non sodales neque sodales ut. Mattis molestie a iaculis at erat pellentesque adipiscing. Magnis dis parturient montes nascetur ridiculus mus mauris vitae ultricies. Adipiscing elit ut aliquam purus sit amet luctus venenatis lectus. Ultrices vitae auctor eu augue ut lectus arcu bibendum at. Odio euismod lacinia at quis risus sed vulputate odio ut. Cursus mattis molestie a iaculis at erat pellentesque adipiscing.";
-const aboutContent = "Hac habitasse platea dictumst vestibulum rhoncus est pellentesque. Dictumst vestibulum rhoncus est pellentesque elit ullamcorper. Non diam phasellus vestibulum lorem sed. Platea dictumst quisque sagittis purus sit. Egestas sed sed risus pretium quam vulputate dignissim suspendisse. Mauris in aliquam sem fringilla. Semper risus in hendrerit gravida rutrum quisque non tellus orci. Amet massa vitae tortor condimentum lacinia quis vel eros. Enim ut tellus elementum sagittis vitae. Mauris ultrices eros in cursus turpis massa tincidunt dui.";
+mongoose.connect("mongodb://localhost:27017/blogDB", { useUnifiedTopology: true , useNewUrlParser: true } );
+
+
+const PostsSchema  = new mongoose.Schema ({
+  title: String,
+  content: String
+});
+
+const Post = mongoose.model("Post", PostsSchema);
+
+const post = new Post({
+  title: "Hellow",
+
+  content: "I have nothing to say"
+});
+
+const homeStartingContent = "Al Yamamah University is located north of Riyadh, on Al-Qassim Highway, and occupies an area of 160,000 square meters. It was designed in accordance with the latest standards for educational institutions. I dont know What to write , Go to the composed page on the top right and start writing some articals and it will be saved wright here ❤️ . ";
+const aboutContent = "HAl Yamamah University (YU) was established in May 2001 as a single college by Alkhudair family. This marked their second major contribution to education in Saudi Arabia, having pioneered the establishment of the first private schools in Riyadh in 1957. Authorized as an institution of higher learning by the Ministry of Higher Education, Al Yamamah College opened its doors to male students in September 2004 and to female students in September 2006. In 2008, the Custodian of the Two Holy Mosques , King Abdullah bin Abdulaziz AlSaud, May Allah Blessed Him, issued a royal decree approving the elevation of Al Yamamah College to university status, the culmination of eight years of planning and hard work to establish a distinctive and modern Saudi educational institution that provides both undergraduate and postgraduate education. Since its inception. the University has established itself at the forefront of the competition among private higher education institutions in the Kingdom using English as a medium for instruction.";
 const contactContent = "Scelerisque eleifend donec pretium vulputate sapien. Rhoncus urna neque viverra justo nec ultrices. Arcu dui vivamus arcu felis bibendum. Consectetur adipiscing elit duis tristique. Risus viverra adipiscing at in tellus integer feugiat. Sapien nec sagittis aliquam malesuada bibendum arcu vitae. Consequat interdum varius sit amet mattis. Iaculis nunc sed augue lacus. Interdum posuere lorem ipsum dolor sit amet consectetur adipiscing elit. Pulvinar elementum integer enim neque. Ultrices gravida dictum fusce ut placerat orci nulla. Mauris in aliquam sem fringilla ut morbi tincidunt. Tortor posuere ac ut consequat semper viverra nam libero.";
 
 const app = express();
@@ -35,10 +52,14 @@ app.use(function(req, res, next) {
 })
 
 app.get("/", function(req, res) {
-  res.render("home", {
-    homeStartingContent: homeStartingContent,
-    posts : posts
-  });
+  Post.find({}, function(err, result){
+    //console.log(result);
+    res.render("home", {
+      homeStartingContent: homeStartingContent,
+      posts : result
+    });
+  })
+
 });
 
 app.get("/about", function(req, res) {
@@ -58,37 +79,62 @@ app.get("/compose", function(req, res) {
 });
 
 app.post("/compose", function(req, res) {
-  const post = {
+  const poste = {
     title: req.body.artical,
     content: req.body.post
   }
-  posts.push(post);
-  res.redirect("/")
+    posts.push(poste);
+    const post = new Post(poste);
+    post.save();
+    res.redirect("/");
 });
 // posts.forEach(function(post){ %>
 //   <h1><%=post.title%></h1>
 //   <p><%=post.content%></p>
 // <%}) %>
+
 app.get("/posts/:topic", function(req, res) {
-  const requstedTitle = _.lowerCase(req.params.topic);
+  // const requstedTitle = _.lowerCase(req.params.topic);
+  const requstedTitle = req.params.topic;
 
-  posts.forEach(function(post){
-      // const choseTopic = post.title;
-      // const storedContent = post.content;
-      const storedTitle = _.lowerCase(post.title);
-      if(storedTitle === requstedTitle){
-        res.render("post", {
-           uType : post.title ,
-           storedContent : post.content
-        });
 
-      }
+  Post.findOne({title: requstedTitle}, function(err, result){
+    //  console.log(title);
+    if(!err){
+      if(!result){
+        console.log("non");
+        //show above list
+    }else{
+      //show list
+console.log("Founded");
+console.log(result.title);
+res.render("post", {
+          uType : result.title ,
+          storedContent : result.content
+       });
 
-  });
+      // res.render("list", {listTitle: result.name, newListItems: result.items });
+    }
+  }
+  })
 
  });
 
 
+
+ // posts.forEach(function(post){
+ //     // const choseTopic = post.title;
+ //     // const storedContent = post.content;
+ //     const storedTitle = _.lowerCase(post.title);
+ //     if(storedTitle === requstedTitle){
+ //       res.render("post", {
+ //          uType : post.title ,
+ //          storedContent : post.content.
+ //       });
+ //
+ //     }
+ //
+ // });
 
 
 //   for (var i = 0; i < posts.length; i++) {
@@ -100,11 +146,6 @@ app.get("/posts/:topic", function(req, res) {
 //     }
 //   }
 //   console.log(res);
-
-
-
-
-
 
 
 

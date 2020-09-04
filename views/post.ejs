@@ -1,10 +1,13 @@
 
 <%- include("partials/header") -%>
 
-
 <h1><%= uType %></h1>
 
 <p><%= storedContent %></p>
 
 
+<% if (storedContent.length > 4500) { %>
+<%- include("partials/footerH") -%>
+   <% } else {  %>
 <%- include("partials/footer") -%>
+<% } %>
