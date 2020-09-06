@@ -1,10 +1,11 @@
 //jshint esversion:6
-
+require('dotenv').config();
 const express = require("express");
 const bodyParser = require("body-parser");
 const ejs = require("ejs");
 const _ = require("lodash");
 const mongoose = require("mongoose");
+const encrypt = require("mongoose-encryption");
 
 mongoose.connect("mongodb+srv://admin-mohammed:Test123@cluster0.pmygq.mongodb.net/blogDB", { useUnifiedTopology: true , useNewUrlParser: true } );
 
@@ -14,7 +15,16 @@ const PostsSchema  = new mongoose.Schema ({
   content: String
 });
 
+const userSchema = new mongoose.Schema ({
+  email: String,
+  password: String
+});
+
+userSchema.plugin(encrypt, {secret: process.env.SECRET, encryptedFields: ["password"]});
+
 const Post = mongoose.model("Post", PostsSchema);
+const User = mongoose.model("User", userSchema);
+
 
 const post = new Post({
   title: "Hellow",
@@ -74,10 +84,40 @@ app.get("/contact", function(req, res) {
   });
 });
 
-app.get("/compose", function(req, res) {
-  res.render("compose");
+// app.get("/compose", function(req, res) {
+//   res.render("compose");
+// });
+app.get("/login", function(req, res) {
+  res.render("login");
 });
 
+
+
+app.post("/login", function(req, res) {
+const username = req.body.username;
+const password = req.body.password;
+
+
+User.findOne({
+  email: username
+},
+function(err, foundUser) {
+  if (!err) {
+    if (!foundUser) {
+      res.send("Wrong Email or password");
+    } else {
+      if (foundUser.password === password) {
+        res.render("compose");
+      } else {
+        res.send("Wrong Email or password");
+      }
+    }
+  } else {
+    res.send(err);
+  }
+}
+)
+})
 app.post("/compose", function(req, res) {
   const poste = {
     title: req.body.artical,
@@ -87,6 +127,7 @@ app.post("/compose", function(req, res) {
     const post = new Post(poste);
     post.save();
     res.redirect("/");
+
 });
 // posts.forEach(function(post){ %>
 //   <h1><%=post.title%></h1>
